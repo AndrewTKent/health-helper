@@ -1,0 +1,30 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout title="Home">
+  <h1>Health Helper</h1>
+  <p>Your personal health dashboard. This is a starting point — tell Claude Code what you want to build.</p>
+
+  <div class="card">
+    <h2>Getting Started</h2>
+    <p>Open this project in Claude Code and describe what you want. Some ideas:</p>
+    <ul style="color: var(--ink-light); padding-left: 1.5rem; margin-bottom: 0.75rem;">
+      <li>"I want to log my meals and see daily macros"</li>
+      <li>"Pull my CGM data from Nightscout and show a glucose chart"</li>
+      <li>"Help me find recipes that fit my dietary needs"</li>
+      <li>"I want an AI nutritionist I can chat with"</li>
+    </ul>
+    <p>Check <code>docs/setup-guide.md</code> for the Cloudflare setup walkthrough.</p>
+  </div>
+
+  <div class="card">
+    <h2>What's in this repo</h2>
+    <ul style="color: var(--ink-light); padding-left: 1.5rem;">
+      <li><strong>docs/</strong> — architecture, API specs, integration guides, page designs</li>
+      <li><strong>db/schema.sql</strong> — database tables ready to deploy</li>
+      <li><strong>src/</strong> — Astro pages and components (this page!)</li>
+      <li><strong>functions/api/</strong> — API endpoints (to be built)</li>
+      <li><strong>CLAUDE.md</strong> — instructions Claude Code reads automatically</li>
+    </ul>
+  </div>
+</Layout>

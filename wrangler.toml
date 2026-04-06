@@ -1,0 +1,22 @@
+name = "health-helper"
+compatibility_date = "2024-09-23"
+pages_build_output_dir = "dist"
+
+# Run: npx wrangler d1 create health-helper-db
+# Then paste the database_id below
+[[d1_databases]]
+binding = "DB"
+database_name = "health-helper-db"
+database_id = "REPLACE_WITH_YOUR_DATABASE_ID"
+
+# Run: npx wrangler r2 bucket create health-helper-photos
+# Uncomment once created:
+# [[r2_buckets]]
+# binding = "PHOTOS"
+# bucket_name = "health-helper-photos"
+
+# Run: npx wrangler kv:namespace create KV
+# Uncomment once created:
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "REPLACE_WITH_YOUR_KV_ID"

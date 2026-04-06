@@ -1,5 +1,104 @@
 # External Integrations
 
+## WHOOP (Recovery, Strain, Sleep, Workouts)
+
+WHOOP tracks 24/7 physiological data — heart rate, HRV, sleep stages, strain, and recovery. The WHOOP API gives us access to all of it.
+
+### Setup
+
+1. Register a developer app at https://developer.whoop.com
+2. Get OAuth2 credentials (client_id, client_secret)
+3. Store in `WHOOP_CLIENT_ID` / `WHOOP_CLIENT_SECRET` env vars
+
+### OAuth2 Flow
+
+```
+1. Redirect user to:
+   https://api.prod.whoop.com/oauth/oauth2/auth
+     ?client_id={id}
+     &redirect_uri={callback}
+     &response_type=code
+     &scope=read:recovery read:cycles read:sleep read:workout read:body_measurement
+     &state={csrf_token}
+
+2. User authorizes on WHOOP → redirects to callback with code
+
+3. Exchange code for tokens:
+   POST https://api.prod.whoop.com/oauth/oauth2/token
+     { grant_type: "authorization_code", code, redirect_uri, client_id, client_secret }
+
+4. Store access_token + refresh_token in KV
+   Access tokens expire in 1 hour — refresh automatically
+```
+
+### Endpoints We Use
+
+```
+GET /developer/v1/activity/workout
+  ?start=2026-04-01T00:00:00.000Z&end=2026-04-06T00:00:00.000Z
+  → Workouts: sport, strain, avg/max HR, calories, duration, zones
+
+GET /developer/v1/recovery
+  ?start=2026-04-01T00:00:00.000Z&end=2026-04-06T00:00:00.000Z
+  → Daily recovery: score (0-100%), HRV (ms), resting HR, SpO2
+
+GET /developer/v1/cycle
+  ?start=2026-04-01T00:00:00.000Z&end=2026-04-06T00:00:00.000Z
+  → Physiological cycles: day strain (0-21), avg HR, calories
+
+GET /developer/v1/activity/sleep
+  ?start=2026-04-01T00:00:00.000Z&end=2026-04-06T00:00:00.000Z
+  → Sleep: total time, stages (SWS/REM/light/awake), efficiency, score
+
+GET /developer/v1/body_measurement
+  → Weight, height, max HR, body fat %
+```
+
+### Key Fields
+
+| Metric | Field | What it tells you |
+|--------|-------|-------------------|
+| Recovery Score | `recovery.score` (0-100%) | How ready you are to train today |
+| HRV | `recovery.hrv_rmssd_milli` (ms) | Autonomic nervous system status |
+| Resting HR | `recovery.resting_heart_rate` | Cardiovascular fitness trend |
+| Day Strain | `cycle.strain` (0-21) | Total cardiovascular load for the day |
+| Sleep Score | `sleep.score` (0-100%) | Sleep quality + duration |
+| Sleep Debt | derived from sleep need vs actual | Accumulated deficit |
+
+### Sync Strategy
+
+- Pull last 7 days on page load (recovery, cycles, sleep, workouts)
+- GitHub Actions cron every 4 hours for background sync
+- Upsert by WHOOP `id` field (each record has a unique ID)
+- Store in D1: `whoop_recoveries`, `whoop_cycles`, `whoop_workouts`, `whoop_sleep`
+
+### What This Unlocks
+
+- **Recovery-aware meal suggestions**: "Recovery is 42% (red). High-protein, anti-inflammatory meal recommended."
+- **Strain vs nutrition**: Did you eat enough to fuel today's 18.2 strain?
+- **Sleep + glucose correlation**: See if poor sleep nights correlate with worse glucose control
+- **Training load context for the AI coach**: "You've had 3 high-strain days in a row — here's a recovery-focused dinner."
+- **HRV trend over time**: Track how nutrition and lifestyle changes affect autonomic recovery
+
+### WHOOP Sport Types
+
+WHOOP uses integer sport IDs. Common ones:
+
+| ID | Sport |
+|----|-------|
+| 0 | Running |
+| 1 | Cycling |
+| 33 | Swimming |
+| 43 | Functional Fitness |
+| 44 | HIIT |
+| 71 | Weightlifting |
+| 63 | Yoga |
+| -1 | Activity (auto-detected) |
+
+Full list at https://developer.whoop.com — map these to our normalized types (`run`, `bike`, `swim`, `strength`, `other`).
+
+---
+
 ## Nightscout (CGM + Loop Data)
 
 Nightscout is an open-source CGM visualization tool. If Ian runs a Nightscout instance (or uses a hosted service like ns.10be.de), we can pull CGM readings and Loop pump data.
@@ -186,6 +285,8 @@ Give Claude tools for:
 - `search_recipes(query, maxCarbs, minProtein)` → calls Spoonacular
 - `lookup_food(name)` → searches foods table or USDA
 - `get_glucose(hours)` → returns recent CGM data
+- `get_recovery()` → returns today's WHOOP recovery, strain, sleep
+- `get_workouts(days)` → returns recent WHOOP workouts
 - `get_pantry()` → returns current pantry
 - `add_to_grocery_list(items)` → adds items to shopping list
 

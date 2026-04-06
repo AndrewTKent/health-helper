@@ -18,7 +18,8 @@ This repo is the foundation. The docs sketch out what's possible. The database s
 |---------|-------------|
 | **Meal Logging** | Log what you eat — search by name, scan a barcode, or snap a photo. See macros and carb counts in real time. |
 | **Glucose Monitoring** | Pull CGM readings from Nightscout. Visualize trends, time-in-range, and how meals affect your blood sugar. |
-| **AI Nutritionist** | A chat interface that knows your glucose patterns, pantry, and dietary goals. Ask it what to eat. |
+| **WHOOP Activity** | Sync workouts, recovery scores, strain, sleep, and HRV from WHOOP. See how training and nutrition interact. |
+| **AI Nutritionist** | A chat interface that knows your glucose, recovery, pantry, and dietary goals. Ask it what to eat. |
 | **Recipe Search** | Find recipes filtered by carbs, protein, dietary restrictions, and what's already in your kitchen. |
 | **Grocery Automation** | Turn a meal plan into a grocery list. One tap sends it to Instacart for delivery. |
 
@@ -83,6 +84,7 @@ Everything runs on Cloudflare's free tier. No servers to manage, no bills to wor
 
 | Service | Purpose |
 |---------|---------|
+| [WHOOP](https://developer.whoop.com/) | Recovery, strain, sleep, HRV, workouts |
 | [Nightscout](http://www.nightscout.info/) | CGM readings + Loop/pump data |
 | [Spoonacular](https://spoonacular.com/food-api) | Recipe search + nutrition data |
 | [Instacart Connect](https://www.instacart.com/company/connect) | Grocery ordering + delivery |
@@ -129,6 +131,6 @@ npm run build            # Production build
 | [`docs/setup-guide.md`](docs/setup-guide.md) | Step-by-step Cloudflare account + database + deploy |
 | [`docs/architecture.md`](docs/architecture.md) | System diagram, data flow, how the pieces connect |
 | [`docs/api-reference.md`](docs/api-reference.md) | Every API endpoint with request/response examples |
-| [`docs/integrations.md`](docs/integrations.md) | Nightscout, Spoonacular, Instacart, Claude API setup |
+| [`docs/integrations.md`](docs/integrations.md) | WHOOP, Nightscout, Spoonacular, Instacart, Claude API setup |
 | [`docs/pages.md`](docs/pages.md) | Page wireframes and component designs |
 | [`CLAUDE.md`](CLAUDE.md) | Instructions Claude Code reads on every session |

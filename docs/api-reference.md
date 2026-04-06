@@ -145,6 +145,121 @@ Trigger a Nightscout sync. Fetches latest readings and insulin doses, upserts in
 
 ---
 
+## WHOOP
+
+### `GET /api/whoop/recovery?days=7`
+
+Returns daily recovery scores, HRV, resting HR.
+
+```json
+{
+  "today": {
+    "date": "2026-04-05",
+    "recovery_score": 72,
+    "hrv_rmssd": 48.2,
+    "resting_hr": 58,
+    "spo2": 97.5,
+    "status": "green"
+  },
+  "history": [
+    { "date": "2026-04-04", "recovery_score": 65, "hrv_rmssd": 41.0, "resting_hr": 61, "status": "yellow" },
+    { "date": "2026-04-03", "recovery_score": 85, "hrv_rmssd": 55.3, "resting_hr": 55, "status": "green" }
+  ]
+}
+```
+
+Recovery status: `green` (67-100%), `yellow` (34-66%), `red` (0-33%).
+
+### `GET /api/whoop/strain?days=7`
+
+Returns daily strain scores and calorie burn.
+
+```json
+{
+  "today": {
+    "date": "2026-04-05",
+    "strain": 11.4,
+    "calories": 2340,
+    "avg_hr": 72,
+    "max_hr": 168
+  },
+  "history": [
+    { "date": "2026-04-04", "strain": 15.8, "calories": 2890 },
+    { "date": "2026-04-03", "strain": 8.2, "calories": 1980 }
+  ]
+}
+```
+
+### `GET /api/whoop/sleep?days=7`
+
+Returns nightly sleep data with stages.
+
+```json
+{
+  "last_night": {
+    "date": "2026-04-05",
+    "sleep_score": 82,
+    "total_minutes": 432,
+    "rem_minutes": 105,
+    "sws_minutes": 78,
+    "light_minutes": 210,
+    "awake_minutes": 39,
+    "efficiency": 91.0,
+    "respiratory_rate": 15.2
+  },
+  "history": [...]
+}
+```
+
+### `GET /api/whoop/workouts?days=14`
+
+Returns recent workouts with strain and HR zones.
+
+```json
+{
+  "workouts": [
+    {
+      "date": "2026-04-05",
+      "start_time": "2026-04-05T07:30:00Z",
+      "sport_name": "Running",
+      "type": "run",
+      "strain": 12.4,
+      "duration_minutes": 45,
+      "avg_hr": 152,
+      "max_hr": 175,
+      "calories": 520,
+      "zones": { "zone1": 120, "zone2": 480, "zone3": 900, "zone4": 720, "zone5": 180 }
+    }
+  ]
+}
+```
+
+Zone values are durations in seconds.
+
+### `POST /api/whoop-sync`
+
+Trigger a WHOOP data sync. Fetches recovery, cycles, workouts, and sleep for the last 7 days.
+
+```json
+{
+  "synced": true,
+  "new_recoveries": 2,
+  "new_workouts": 5,
+  "new_sleep": 2,
+  "latest": "2026-04-05"
+}
+```
+
+### `GET /api/whoop/connect`
+
+Returns OAuth redirect URL for connecting WHOOP account.
+
+### `POST /api/whoop/connect`
+
+Handle OAuth callback, store tokens in KV.
+
+---
+
 ## Recipes
 
 ### `GET /api/recipes?query=chicken&maxCarbs=40&diet=gluten-free`

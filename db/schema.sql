@@ -244,6 +244,85 @@ CREATE TABLE IF NOT EXISTS grocery_items (
 
 CREATE INDEX IF NOT EXISTS idx_grocery_items_order ON grocery_items(order_id);
 
+-- ── WHOOP Data ──
+
+CREATE TABLE IF NOT EXISTS whoop_recoveries (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  date TEXT NOT NULL,              -- YYYY-MM-DD
+  recovery_score REAL,             -- 0-100%
+  hrv_rmssd REAL,                  -- HRV in ms
+  resting_hr REAL,                 -- bpm
+  spo2 REAL,                       -- blood oxygen %
+  skin_temp REAL,                  -- Celsius
+  external_id TEXT,                -- WHOOP cycle_id for dedup
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_whoop_recovery_ext ON whoop_recoveries(external_id);
+CREATE INDEX IF NOT EXISTS idx_whoop_recovery_user_date ON whoop_recoveries(user_id, date);
+
+CREATE TABLE IF NOT EXISTS whoop_cycles (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  date TEXT NOT NULL,
+  strain REAL,                     -- 0-21 scale
+  avg_hr REAL,                     -- bpm
+  max_hr REAL,
+  calories REAL,                   -- kcal
+  external_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_whoop_cycle_ext ON whoop_cycles(external_id);
+CREATE INDEX IF NOT EXISTS idx_whoop_cycle_user_date ON whoop_cycles(user_id, date);
+
+CREATE TABLE IF NOT EXISTS whoop_workouts (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  date TEXT NOT NULL,
+  start_time DATETIME,
+  end_time DATETIME,
+  sport_id INTEGER,                -- WHOOP sport type ID
+  sport_name TEXT,                 -- human-readable sport name
+  type TEXT,                       -- normalized: 'run', 'bike', 'swim', 'strength', 'other'
+  strain REAL,                     -- workout strain
+  avg_hr REAL,
+  max_hr REAL,
+  calories REAL,
+  duration_minutes REAL,
+  distance_meters REAL,
+  zone_1_ms INTEGER,               -- HR zone durations in milliseconds
+  zone_2_ms INTEGER,
+  zone_3_ms INTEGER,
+  zone_4_ms INTEGER,
+  zone_5_ms INTEGER,
+  external_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_whoop_workout_ext ON whoop_workouts(external_id);
+CREATE INDEX IF NOT EXISTS idx_whoop_workout_user_date ON whoop_workouts(user_id, date);
+
+CREATE TABLE IF NOT EXISTS whoop_sleep (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id INTEGER NOT NULL REFERENCES users(id),
+  date TEXT NOT NULL,              -- date sleep started
+  sleep_score REAL,                -- 0-100%
+  total_minutes REAL,
+  rem_minutes REAL,
+  sws_minutes REAL,                -- slow wave (deep) sleep
+  light_minutes REAL,
+  awake_minutes REAL,
+  sleep_efficiency REAL,           -- % of time in bed actually sleeping
+  respiratory_rate REAL,
+  external_id TEXT,
+  created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_whoop_sleep_ext ON whoop_sleep(external_id);
+CREATE INDEX IF NOT EXISTS idx_whoop_sleep_user_date ON whoop_sleep(user_id, date);
+
 -- ── Chat History ──
 
 CREATE TABLE IF NOT EXISTS chat_conversations (

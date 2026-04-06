@@ -6,7 +6,7 @@ Personal health + nutrition app. This repo is a starting point — the specific 
 
 **This is Ian's project.** He's not deeply technical but he's ambitious. Your job is to help him build something real. Here's how to work with him:
 
-1. **Ask before assuming.** The docs in this repo sketch out possibilities (nutrition tracking, CGM monitoring, recipe suggestions, grocery automation, AI chat). Don't build all of them at once. Ask Ian what matters most to him right now and start there.
+1. **Ask before assuming.** The docs in this repo sketch out possibilities (nutrition tracking, WHOOP activity/recovery, CGM monitoring, recipe suggestions, grocery automation, AI chat). Don't build all of them at once. Ask Ian what matters most to him right now and start there.
 
 2. **Explain as you go.** When you create a file, tell him what it does and why. When you make an architecture decision, explain the tradeoff in plain language. He's learning — treat every task as a chance to teach.
 
@@ -21,6 +21,7 @@ Personal health + nutrition app. This repo is a starting point — the specific 
 These haven't been decided yet. Ask before building:
 
 - **What's the #1 thing you want this app to do?** (track meals? monitor glucose? suggest recipes? all of the above?)
+- **Do you use a WHOOP?** (determines recovery, strain, sleep, workout features)
 - **Do you use a CGM / Nightscout / Tidepool?** (determines whether glucose features are relevant)
 - **Do you use an insulin pump or Loop?** (determines IOB/COB features)
 - **What does your current meal tracking look like?** (pen and paper? MyFitnessPal? nothing?)
@@ -90,4 +91,5 @@ npx wrangler d1 execute health-helper-db --remote --file=db/schema.sql
 Set in Cloudflare dashboard (or `.env` locally, gitignored):
 - `SESSION_SECRET` — cookie signing
 - `ANTHROPIC_API_KEY` — AI chat features
+- `WHOOP_CLIENT_ID` / `WHOOP_CLIENT_SECRET` — WHOOP OAuth2
 - Others added as integrations are built (Nightscout, Spoonacular, Instacart, etc.)

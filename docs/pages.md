@@ -32,11 +32,18 @@ Daily command center. At a glance: where am I at today?
 │  │  🌙 Dinner    — not logged —  [Log meal]  │    │
 │  └──────────────────────────────────────────┘    │
 │                                                   │
+│  ┌─────────────┐  ┌──────────────────────────┐  │
+│  │  Recovery    │  │  Sleep                   │  │
+│  │  72% 🟢     │  │  7h12m · 82% score       │  │
+│  │  HRV 48ms   │  │  1h45m REM · 1h18m deep  │  │
+│  │  RHR 58bpm  │  │  Strain today: 11.4      │  │
+│  └─────────────┘  └──────────────────────────┘  │
+│                                                   │
 │  ┌──────────────────────────────────────────┐    │
 │  │  💡 Insight                               │    │
-│  │  "TIR up 5% this week. Oats keeping you   │    │
-│  │   stable — keep it up. Low-carb dinner     │    │
-│  │   tonight to stay under target."           │    │
+│  │  "Recovery is green and TIR up 5%. Your   │    │
+│  │   oat breakfasts keep glucose stable. Go   │    │
+│  │   high-protein for dinner tonight."        │    │
 │  └──────────────────────────────────────────┘    │
 │                                                   │
 │  [🍳 Log Meal]  [💬 Ask Coach]  [📋 Recipes]    │
@@ -48,9 +55,11 @@ Daily command center. At a glance: where am I at today?
 
 - `GlucoseCard.astro` — current reading, direction arrow, TIR, IOB
 - `MacroRings.astro` — circular progress for each macro (canvas: `macro-rings`)
+- `RecoveryCard.astro` — WHOOP recovery score, HRV, resting HR (canvas: `recovery-gauge`)
+- `SleepCard.astro` — last night's sleep score, duration, stages
 - `GlucoseTimeline.astro` — 24h line chart with meal markers (canvas: `glucose-timeline`)
 - `MealList.astro` — today's meals, expandable for items
-- `InsightCard.astro` — AI-generated daily insight
+- `InsightCard.astro` — AI-generated daily insight (incorporates recovery + glucose + nutrition)
 
 ---
 
@@ -122,6 +131,102 @@ CGM and Loop monitoring dashboard.
 ### Data Source
 
 All glucose data comes from `/api/glucose` which reads from D1 (synced from Nightscout). Page triggers a sync on load to get the latest readings.
+
+---
+
+## Activity (`/activity`)
+
+WHOOP data — recovery, strain, sleep, and workout history.
+
+### Layout
+
+```
+┌──────────────────────────────────────────────────┐
+│                                                    │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐        │
+│  │ Recovery  │  │ Strain   │  │ Sleep    │        │
+│  │   72%     │  │  11.4    │  │  7h12m   │        │
+│  │   🟢      │  │  /21     │  │  82%     │        │
+│  │ HRV 48ms  │  │ 2340 cal │  │ 1h45 REM │        │
+│  │ RHR 58    │  │          │  │ 1h18 SWS │        │
+│  └──────────┘  └──────────┘  └──────────┘        │
+│                                                    │
+│  ┌──────────────────────────────────────────┐     │
+│  │  Recovery Trend (14d)                     │     │
+│  │  ▁▃▅▇▅▃▅▇█▅▃▅▇▅                          │     │
+│  │  🟢🟢🟡🟢🟢🟡🟡🟢🟢🟢🟡🟢🟢🟢       │     │
+│  └──────────────────────────────────────────┘     │
+│                                                    │
+│  ┌──────────────────────────────────────────┐     │
+│  │  HRV Trend (30d)                          │     │
+│  │  ~~~~/\~~~~~/\~~~~/\~~~~~~                │     │
+│  │  — 7-day avg: 46ms  — 30-day avg: 43ms   │     │
+│  └──────────────────────────────────────────┘     │
+│                                                    │
+│  ┌──────────────────────────────────────────┐     │
+│  │  Sleep Stages (7 nights)                  │     │
+│  │  ██████░░░░  Mon  7h02m                   │     │
+│  │  ████████░░  Tue  8h15m                   │     │
+│  │  █████░░░░░  Wed  6h30m                   │     │
+│  │  ■ REM  ■ Deep  ■ Light  □ Awake          │     │
+│  └──────────────────────────────────────────┘     │
+│                                                    │
+│  ┌──────────────────────────────────────────┐     │
+│  │  Daily Strain (14d)                       │     │
+│  │  ▁▃▅ ▇ ▃▅▇ ▁ ▅▇▃▅▇▅                     │     │
+│  │       🏃    🚴    🏊                       │     │
+│  └──────────────────────────────────────────┘     │
+│                                                    │
+│  ┌──────────────────────────────────────────┐     │
+│  │  Recent Workouts                          │     │
+│  │  🏃 Running    45min  strain 12.4  520cal │     │
+│  │  🚴 Cycling    62min  strain 14.1  680cal │     │
+│  │  🏊 Swimming   35min  strain  8.2  310cal │     │
+│  │  🏃 Running    30min  strain  9.8  380cal │     │
+│  └──────────────────────────────────────────┘     │
+│                                                    │
+└──────────────────────────────────────────────────┘
+```
+
+### Charts
+
+1. **Recovery Gauge** (canvas: `recovery-gauge`)
+   - Semicircle gauge: 0-100%
+   - Color zones: red (0-33), yellow (34-66), green (67-100)
+   - HRV and resting HR below
+
+2. **Recovery Trend** (canvas: `recovery-trend`)
+   - Bar chart: daily recovery over 14-30 days
+   - Bars colored by zone (red/yellow/green)
+   - Overlay line for HRV trend
+
+3. **HRV Trend** (canvas: `hrv-trend`)
+   - Line chart: daily HRV (ms) over 30 days
+   - 7-day rolling average overlay
+   - Useful for spotting overtraining or illness
+
+4. **Sleep Stages** (canvas: `sleep-stages`)
+   - Stacked horizontal bars: REM, deep (SWS), light, awake per night
+   - 7 or 14 night view
+   - Sleep score label on each bar
+
+5. **Strain Trend** (canvas: `strain-trend`)
+   - Bar chart: daily strain over 14 days
+   - Workout markers on high-strain days
+   - Calorie overlay line
+
+6. **Workout History** (list, not chart)
+   - Recent workouts with sport icon, duration, strain, calories
+   - HR zone breakdown as mini stacked bar
+   - Expandable for details
+
+### Cross-Page Insights
+
+WHOOP data enriches other pages:
+- **Home**: recovery card + sleep card in the daily summary
+- **Nutrition**: "You burned 2340 cal today (strain 11.4). You've eaten 1580 cal. Deficit: 760 cal."
+- **Chat**: AI knows recovery state — "Recovery is 42%, suggest anti-inflammatory foods"
+- **Glucose**: sleep quality correlation with next-day glucose control
 
 ---
 

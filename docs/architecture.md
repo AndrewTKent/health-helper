@@ -14,6 +14,7 @@ Browser (Astro pages + Chart.js)
     │       ├── Cloudflare KV             ← API tokens, session cache
     │       │
     │       └── External APIs
+    │           ├── WHOOP                 ← recovery, strain, sleep, workouts
     │           ├── Nightscout            ← CGM + Loop data
     │           ├── Spoonacular           ← recipes + nutrition
     │           ├── Instacart Connect     ← grocery ordering
@@ -27,9 +28,10 @@ Browser (Astro pages + Chart.js)
 
 | Page | Purpose | Key Data |
 |------|---------|----------|
-| `/` (Home) | Daily summary — today's macros, current glucose, next meal | meals, glucose, meal_plans |
+| `/` (Home) | Daily summary — today's macros, glucose, recovery, next meal | meals, glucose, whoop_recoveries, meal_plans |
 | `/nutrition` | Meal logging, food search, macro breakdown | meals, meal_items, foods |
 | `/glucose` | CGM timeline, time-in-range, meal impact analysis | glucose_readings, insulin_doses, meals |
+| `/activity` | WHOOP recovery, strain, sleep, workout history | whoop_recoveries, whoop_cycles, whoop_workouts, whoop_sleep |
 | `/recipes` | Recipe search, saved recipes, meal planning calendar | saved_recipes, meal_plans |
 | `/groceries` | Pantry inventory, grocery list, Instacart checkout | pantry, grocery_items, grocery_orders |
 | `/chat` | AI nutritionist conversation | chat_conversations, chat_messages |
@@ -53,6 +55,25 @@ Periodic: GitHub Actions cron every 15min calls /api/glucose-sync
 Nightscout API: `GET /api/v1/entries.json?count=288&find[dateString][$gte]=...`
 - 288 entries = 24h at 5-min intervals
 - Each entry has: `sgv` (mg/dL), `direction`, `dateString`, `_id`
+
+### WHOOP (Recovery, Strain, Sleep, Workouts)
+
+```
+Browser loads activity.astro
+  → JS calls /api/whoop-sync (POST, triggers background sync)
+  → whoop-sync.js fetches last 7 days from WHOOP API
+  → Upserts into D1 (whoop_recoveries, whoop_cycles, whoop_workouts, whoop_sleep)
+  → Returns fresh data to the page
+
+Periodic: GitHub Actions cron every 4h calls /api/whoop-sync
+  → Keeps D1 current even when page isn't open
+```
+
+WHOOP API: OAuth2, data scoped by date range.
+- Recovery: daily score (0-100%), HRV, resting HR, SpO2
+- Cycles: daily strain (0-21), calories, HR data
+- Workouts: per-activity strain, HR, duration, HR zones
+- Sleep: score, stages (REM/SWS/light/awake), efficiency
 
 ### Recipes (Spoonacular)
 
@@ -85,6 +106,11 @@ public/charts/
   meal-impact.js         ← post-meal glucose curves (overlay multiple meals)
   weekly-nutrition.js    ← stacked bar: weekly macro intake vs targets
   iob-cob.js             ← dual gauge: insulin on board + carbs on board
+  recovery-gauge.js      ← WHOOP recovery score (0-100%) with color zones
+  strain-trend.js        ← daily strain over time (bar chart)
+  sleep-stages.js        ← stacked bar: REM/SWS/light/awake per night
+  hrv-trend.js           ← HRV (ms) line chart with rolling average
+  workout-history.js     ← recent workouts: strain, duration, HR zones
 ```
 
 Each module:
@@ -99,6 +125,12 @@ Each module:
 The chat endpoint builds a system prompt with live data sections:
 
 ```
+[WHOOP_CONTEXT]
+Recovery: 72% (green) — HRV 48ms, RHR 58bpm
+Today's strain: 11.4 (moderate)
+Last night sleep: 7h12m, 82% efficiency, 1h45m REM
+3-day trend: recovery 72% → 65% → 72% (rebounding)
+
 [GLUCOSE_CONTEXT]
 Current: 142 mg/dL, trend: Flat
 Last 3h: 128 → 155 → 142
